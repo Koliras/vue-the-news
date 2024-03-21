@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted } from 'vue'
 import { useFetch } from '@vueuse/core'
 const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY;

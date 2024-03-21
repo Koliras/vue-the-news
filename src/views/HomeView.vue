@@ -6,16 +6,7 @@ const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY;
 let news = ref([]);
 
 onMounted(async () => {
-  const { data, isFetching, error } = await useFetch('https://newsapi.org/v2/everything?q=Apple', {
-    async beforeFetch({ options }) {
-      options.headers["X-Api-Key"] = NEWS_API_KEY;
-      options.headers["Authorization"] = NEWS_API_KEY;
-
-      return {
-        options,
-      }
-    }
-  }).json()
+  const { data, isFetching, error } = await useFetch(`https://newsapi.org/v2/everything?q=Apple&apiKey=${NEWS_API_KEY}`).json()
 
   news.value = data.value.articles;
 })

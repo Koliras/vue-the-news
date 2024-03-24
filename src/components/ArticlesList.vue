@@ -5,7 +5,7 @@ const props = defineProps(['articles']);
 
 <template>
   <ul class="articles_list">
-    <li v-for="article in props.articles" class="article_card_container">
+    <li v-for="article in props.articles" class="article_card_container" :id="article.url">
       <v-card
         v-if="article.title !== '[Removed]'"
         :title="article.title"
@@ -39,10 +39,5 @@ const props = defineProps(['articles']);
   width: 35rem;
   list-style: none;
 }
-
-.article_card {
-  padding: 1rem;
-}
-
 
 </style>

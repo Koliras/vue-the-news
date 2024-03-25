@@ -84,6 +84,14 @@ async function handleSubmit() {
 
   emit('search-submit' ,data.value.articles);
 }
+
+function handleClear() {
+  formState.query = '';
+  formState.searchIn = [];
+  formState.sortBy = 'publishedAt';
+  formState.dateTo = undefined;
+  formState.dateFrom = undefined;
+}
 </script>
 
 <template>
@@ -97,82 +105,100 @@ async function handleSubmit() {
       variant="outlined"
     ></v-text-field>
     
-    <div class="searchInContainer">
-      <h3>Search in: <sup class="sup">by default searches everywhere</sup></h3>
-      <v-checkbox
-        v-for="field in SEARCH_IN_FIELDS"
-        :label="field"
-        :value="field"
-        v-model="formState.searchIn"
-        class="searchInField"
-        hide-details
-        type="checkbox"
-      ></v-checkbox>
+    <div class="choices">
+      <div class="searchInContainer">
+        <h3>Search in: <sup class="sup">by default searches everywhere</sup></h3>
+        <v-checkbox
+          v-for="field in SEARCH_IN_FIELDS"
+          :label="field"
+          :value="field"
+          v-model="formState.searchIn"
+          class="searchInField"
+          hide-details
+          type="checkbox"
+        ></v-checkbox>
+      </div>
+
+      <v-container class="sortContainer">
+        <v-radio-group v-model="formState.sortBy">
+          <h3>Sort by:</h3>
+          <br>
+          <v-radio
+            v-for="sortMethod in SORT_METHODS"
+            :label="sortMethod.label"
+            :value="sortMethod.value"
+          ></v-radio>
+        </v-radio-group>
+      </v-container>
     </div>
 
-    <v-container fluid class="sortContainer">
-      <v-radio-group v-model="formState.sortBy">
-        <h3>Sort by:</h3>
-        <v-radio
-          v-for="sortMethod in SORT_METHODS"
-          :label="sortMethod.label"
-          :value="sortMethod.value"
-        ></v-radio>
-      </v-radio-group>
-    </v-container>
-
-    <div class="datePickerContainer">
-      <button
-        type="button"
-        @click="showDateFromPicker = !showDateFromPicker"
+    <div class="dates">
+      <div class="datePickerContainer">
+        <button
+          type="button"
+          class="dateBtn"
+          @click="showDateFromPicker = !showDateFromPicker"
         >
-        From: {{ dateFromFormated || "" }}
-      </button>
+          From:
+          <span>
+            {{ dateFromFormated || "" }}
+          </span>
+        </button>
 
-      <span
-        v-if="showDateFromPicker"
-        class="datePickerBack"
-        @click="showDateFromPicker = false"
-      ></span>
+        <span
+          v-if="showDateFromPicker"
+          class="datePickerBack"
+          @click="showDateFromPicker = false"
+        ></span>
 
-      <v-date-picker
-        v-if="showDateFromPicker"
-        class="datePicker"
-        id="dateTo"
-        @update:modelValue="() => showDateFromPicker = false"
-        v-model="formState.dateFrom"
-        :max="dateToFormated || TODAY"
-        hide-header
-      ></v-date-picker>
+        <v-date-picker
+          v-if="showDateFromPicker"
+          class="datePicker"
+          id="dateTo"
+          @update:modelValue="() => showDateFromPicker = false"
+          v-model="formState.dateFrom"
+          :max="dateToFormated || TODAY"
+          hide-header
+        ></v-date-picker>
+      </div>
+
+      <div class="datePickerContainer">
+        <button
+          type="button"
+          class="dateBtn"
+          @click="showDateToPicker = !showDateToPicker"
+        >
+          To:
+          <span>
+            {{ dateToFormated || "" }}
+          </span>
+        </button>
+
+        <span
+          v-if="showDateToPicker"
+          class="datePickerBack"
+          @click="showDateToPicker = false"
+        ></span>
+
+        <v-date-picker
+          v-if="showDateToPicker"
+          class="datePicker"
+          id="dateTo"
+          @update:modelValue="() => showDateToPicker = false"
+          v-model="formState.dateTo"
+          :min="dateFromFormated"
+          :max="TODAY"
+          hide-header
+        ></v-date-picker>
+      </div>
     </div>
 
-    <div class="datePickerContainer">
-      <button
-        type="button"
-        @click="showDateToPicker = !showDateToPicker"
-      >
-        To: {{ dateToFormated || "" }}
-      </button>
-
-      <span
-        v-if="showDateToPicker"
-        class="datePickerBack"
-        @click="showDateToPicker = false"
-      ></span>
-
-      <v-date-picker
-        v-if="showDateToPicker"
-        class="datePicker"
-        id="dateTo"
-        @update:modelValue="() => showDateToPicker = false"
-        v-model="formState.dateTo"
-        :min="dateFromFormated"
-        :max="TODAY"
-        hide-header
-      ></v-date-picker>
+    <div class="buttons">
+      <v-btn type="submit">Search</v-btn>
+      <v-btn type="button" @click="handleClear">
+        Clear
+      </v-btn>
     </div>
-
-    <v-btn type="submit">Search</v-btn>
   </form>
 </template>
 
@@ -181,8 +207,14 @@ async function handleSubmit() {
   margin: 1rem;
 }
 
+.choices {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
 .searchInField {
-  height: 2rem;
+  height: 2.25rem;
 }
 
 .searchInContainer {
@@ -202,7 +234,14 @@ async function handleSubmit() {
 
 .sortContainer {
   padding: 0;
-  margin-top: 2rem;
+  width: fit-content;
+  text-transform: capitalize;
+}
+
+.dates {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
 }
 
 .datePickerContainer {
@@ -220,5 +259,22 @@ async function handleSubmit() {
   height: 100vh;
   top: 0;
   left: 0;
+}
+
+.dateBtn {
+  width: 11rem;
+  background-color: #03a9f4;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  color: white;
+  font-weight: 600;
+}
+
+.buttons {
+  display: flex;
+  gap: 1.5rem;
 }
 </style>

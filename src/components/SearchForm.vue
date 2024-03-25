@@ -7,7 +7,11 @@ import { SEARCH_IN_FIELDS, initialNewsUrl, SORT_METHODS } from '../utils/constan
 
 const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY
 const emit = defineEmits([ 'search-submit' ]);
+
 const showDateToPicker = ref(false);
+const showDateFromPicker = ref(false);
+
+const TODAY = (new Date()).toISOString().slice(0, 10);
 
 const formState = reactive({
   query: '',
@@ -17,9 +21,23 @@ const formState = reactive({
   dateFrom: undefined,
 })
 
-const dateToBtn = ref(null)
-const dateToFormated = computed(() => formState.dateTo?.toISOString().slice(0, 10));
-const dateFromFormated = computed(() => formState.dateFrom?.toISOString().slice(0, 10));
+const dateToFormated = computed(() => {
+  if (!formState.dateTo) {
+    return formState.dateTo;
+  }
+  const date = new Date(formState.dateTo);
+  date.setDate(date.getDate() + 1);
+  return date?.toISOString().slice(0, 10);
+});
+
+const dateFromFormated = computed(() => {
+  if (!formState.dateFrom) {
+    return formState.dateFrom;
+  }
+  const date = new Date(formState.dateFrom);
+  date.setDate(date.getDate() + 1);
+  return date?.toISOString().slice(0, 10);
+});
 
 const rules = computed(() => {
   return {
@@ -101,8 +119,32 @@ async function handleSubmit() {
     <div class="datePickerContainer">
       <button
         type="button"
+        @click="showDateFromPicker = !showDateFromPicker"
+        >
+        From: {{ dateFromFormated || "" }}
+      </button>
+
+      <span
+        v-if="showDateFromPicker"
+        class="datePickerBack"
+        @click="showDateFromPicker = false"
+      ></span>
+
+      <v-date-picker
+        v-if="showDateFromPicker"
+        class="datePicker"
+        id="dateTo"
+        @update:modelValue="() => showDateFromPicker = false"
+        v-model="formState.dateFrom"
+        :max="dateToFormated || TODAY"
+        hide-header
+      ></v-date-picker>
+    </div>
+
+    <div class="datePickerContainer">
+      <button
+        type="button"
         @click="showDateToPicker = !showDateToPicker"
-        ref="dateToBtn"
       >
         To: {{ dateToFormated || "" }}
       </button>
@@ -119,6 +161,8 @@ async function handleSubmit() {
         id="dateTo"
         @update:modelValue="() => showDateToPicker = false"
         v-model="formState.dateTo"
+        :min="dateFromFormated"
+        :max="TODAY"
         hide-header
       ></v-date-picker>
     </div>

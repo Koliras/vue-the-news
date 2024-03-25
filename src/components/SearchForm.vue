@@ -64,8 +64,13 @@ async function handleSubmit() {
   }
 
   if (formState.dateTo) {
-    urlString += `&to${formState.dateTo}`
+    urlString += `&to=${dateToFormated.value}`
   }
+
+  if (formState.dateFrom) {
+    urlString += `&from=${dateFromFormated.value}`
+  }
+
   const uriEncodedString = encodeURI(urlString);
 
   const { data } = await useFetch(uriEncodedString, {

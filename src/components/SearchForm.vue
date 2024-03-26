@@ -1,5 +1,6 @@
 <script setup>
-import { reactive, computed, ref } from 'vue'
+import { reactive, computed, ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useFetch } from '@vueuse/core'
 import { useVuelidate } from '@vuelidate/core'
 import { required, minLength } from '@vuelidate/validators'
@@ -7,6 +8,8 @@ import { SEARCH_IN_FIELDS, initialNewsUrl, SORT_METHODS } from '../utils/constan
 
 const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY
 const emit = defineEmits([ 'search-submit' ]);
+const $router = useRouter()
+const $route = useRoute()
 
 const showDateToPicker = ref(false);
 const showDateFromPicker = ref(false);
@@ -14,11 +17,11 @@ const showDateFromPicker = ref(false);
 const TODAY = (new Date()).toISOString().slice(0, 10);
 
 const formState = reactive({
-  query: '',
-  searchIn: [],
-  sortBy: 'publishedAt',
-  dateTo: undefined,
-  dateFrom: undefined,
+  query: $route.query.q || '',
+  searchIn: $route.query.searchIn || [],
+  sortBy: $route.query.sortBy || 'publishedAt',
+  dateTo: $route.query.to || undefined,
+  dateFrom: $route.query.from || undefined,
 })
 
 const dateToFormated = computed(() => {
@@ -58,17 +61,25 @@ async function handleSubmit() {
   const passed = await v$.value.$validate();
   if (!passed) return;
 
+  const queries = {};
+
   let urlString = initialNewsUrl + `&q=${formState.query}&sortBy=${formState.sortBy}`;
+  queries.q = formState.query;
+  queries.sortBy = formState.sortBy;
+
   if (formState.searchIn.length) {
     urlString += `&searchIn=${formState.searchIn.join(',')}`
+    queries.searchIn = [...formState.searchIn];
   }
 
   if (formState.dateTo) {
     urlString += `&to=${dateToFormated.value}`
+    queries.to = formState.dateTo.toString().slice(0, 15);
   }
 
   if (formState.dateFrom) {
     urlString += `&from=${dateFromFormated.value}`
+    queries.from = formState.dateFrom.toString().slice(0, 15);
   }
 
   const uriEncodedString = encodeURI(urlString);
@@ -83,6 +94,7 @@ async function handleSubmit() {
   }).json()
 
   emit('search-submit' ,data.value.articles);
+  $router.push({ path: '/', query: queries })
 }
 
 function handleClear() {
@@ -92,6 +104,20 @@ function handleClear() {
   formState.dateTo = undefined;
   formState.dateFrom = undefined;
 }
+
+function handleDateFromChange(date) {
+  formState.dateFrom = date;
+  showDateFromPicker.value = false;
+}
+
+function handleDateToChange(date) {
+  formState.dateTo = date;
+  showDateToPicker.value = false;
+}
+
+onMounted(() => {
+  if (formState.query.length >= 3) handleSubmit();
+})
 </script>
 
 <template>
@@ -155,10 +181,11 @@ function handleClear() {
           v-if="showDateFromPicker"
           class="datePicker"
           id="dateTo"
-          @update:modelValue="() => showDateFromPicker = false"
-          v-model="formState.dateFrom"
+          @update:modelValue="handleDateFromChange"
+          :value="dateFromFormated"
           :max="dateToFormated || TODAY"
           hide-header
+          show-current=""
         ></v-date-picker>
       </div>
 
@@ -184,11 +211,12 @@ function handleClear() {
           v-if="showDateToPicker"
           class="datePicker"
           id="dateTo"
-          @update:modelValue="() => showDateToPicker = false"
-          v-model="formState.dateTo"
+          @update:modelValue="handleDateToChange"
+          :value="dateToFormated"
           :min="dateFromFormated"
           :max="TODAY"
           hide-header
+          show-current=""
         ></v-date-picker>
       </div>
     </div>

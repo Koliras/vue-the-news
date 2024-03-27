@@ -1,12 +1,11 @@
 <script setup>
-import { reactive, computed, ref, onMounted } from 'vue'
+import { reactive, computed, ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useFetch } from '@vueuse/core'
 import { useVuelidate } from '@vuelidate/core'
 import { required, minLength } from '@vuelidate/validators'
 import { SEARCH_IN_FIELDS, initialNewsUrl, SORT_METHODS } from '../utils/constants.js'
+import fetchApi from '../utils/fetchApi.js';
 
-const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY
 const emit = defineEmits([ 'search-submit' ]);
 const $router = useRouter()
 const $route = useRoute()
@@ -23,6 +22,36 @@ const formState = reactive({
   dateTo: $route.query.to || undefined,
   dateFrom: $route.query.from || undefined,
 })
+
+async function handleQueryChange() {
+  formState.query = $route.query.q || '';
+  formState.searchIn = $route.query.searchIn || [];
+  formState.sortBy = $route.query.sortBy || 'publishedAt';
+  formState.dateTo = $route.query.to || undefined;
+  formState.dateFrom = $route.query.from || undefined;
+
+  let urlString = initialNewsUrl + `&q=${formState.query}&sortBy=${formState.sortBy}`;
+
+  if (formState.searchIn.length) {
+    urlString += `&searchIn=${formState.searchIn.join(',')}`
+  }
+
+  if (formState.dateTo) {
+    urlString += `&to=${dateToFormated.value}`
+  }
+
+  if (formState.dateFrom) {
+    urlString += `&from=${dateFromFormated.value}`
+  }
+
+  const uriEncodedString = encodeURI(urlString);
+
+  const { data } = await fetchApi(uriEncodedString);
+
+  emit('search-submit' ,data.value.articles);
+}
+
+watch(() => $route.query, handleQueryChange);
 
 const dateToFormated = computed(() => {
   if (!formState.dateTo) {
@@ -63,37 +92,21 @@ async function handleSubmit() {
 
   const queries = {};
 
-  let urlString = initialNewsUrl + `&q=${formState.query}&sortBy=${formState.sortBy}`;
   queries.q = formState.query;
   queries.sortBy = formState.sortBy;
 
   if (formState.searchIn.length) {
-    urlString += `&searchIn=${formState.searchIn.join(',')}`
     queries.searchIn = [...formState.searchIn];
   }
 
   if (formState.dateTo) {
-    urlString += `&to=${dateToFormated.value}`
     queries.to = formState.dateTo.toString().slice(0, 15);
   }
 
   if (formState.dateFrom) {
-    urlString += `&from=${dateFromFormated.value}`
     queries.from = formState.dateFrom.toString().slice(0, 15);
   }
 
-  const uriEncodedString = encodeURI(urlString);
-
-  const { data } = await useFetch(uriEncodedString, {
-    async beforeFetch({ options }) {
-      options.headers = {
-        ...options.headers,
-        "X-Api-Key": NEWS_API_KEY,
-      }
-    }
-  }).json()
-
-  emit('search-submit' ,data.value.articles);
   $router.push({ path: '/', query: queries })
 }
 

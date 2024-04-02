@@ -1,6 +1,23 @@
 <script setup>
-const props = defineProps(['articles']);
+import { ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
+const props = defineProps(['articles', 'amountOfPages']);
+const $router = useRouter()
+const $route = useRoute()
+
+const currentPage = ref($route.query.page || 1);
+
+watch(currentPage, () => {
+  $router.push({ query: {
+    ...$route.query,
+    page: currentPage.value,
+  }})
+})
+
+watch(() => $route.query.page, () => {
+  currentPage.value = $route.query.page
+});
 </script>
 
 <template>
@@ -27,6 +44,12 @@ const props = defineProps(['articles']);
         variant="tonal"
       ></v-card>
     </li>
+    <v-pagination
+      class="pagination"
+      :length="props.amountOfPages"
+      total-visible="6"
+      v-model="currentPage"
+    ></v-pagination>
   </ul>
   <h2 v-else>There are no articles</h2>
 </template>
@@ -35,7 +58,6 @@ const props = defineProps(['articles']);
 .articles_list {
   display: flex;
   align-items: center;
-  /* justify-content: center; */
   flex-direction: column;
   gap: 0.5rem;
 }
@@ -47,4 +69,7 @@ const props = defineProps(['articles']);
   list-style: none;
 }
 
+.pagination {
+  margin-bottom: 2rem;
+}
 </style>

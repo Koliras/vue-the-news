@@ -35,7 +35,7 @@ async function handleQueryChange() {
     return;
   }
 
-  let urlString = initialNewsUrl + `&q=${formState.query}&sortBy=${formState.sortBy}`;
+  let urlString = initialNewsUrl + `&q=${formState.query}&sortBy=${formState.sortBy}&page=${$route.query.page}`;
 
   if (formState.searchIn.length) {
     urlString += `&searchIn=${formState.searchIn.join(',')}`
@@ -53,7 +53,7 @@ async function handleQueryChange() {
 
   const { data } = await fetchApi(uriEncodedString);
 
-  emit('search-submit' ,data.value.articles);
+  emit('search-submit' ,data.value);
 }
 
 watch(() => $route.query, handleQueryChange);
@@ -99,6 +99,7 @@ async function handleSubmit() {
 
   queries.q = formState.query;
   queries.sortBy = formState.sortBy;
+  queries.page = 1;
 
   if (formState.searchIn.length) {
     queries.searchIn = [...formState.searchIn];

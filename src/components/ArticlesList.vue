@@ -4,7 +4,7 @@ const props = defineProps(['articles']);
 </script>
 
 <template>
-  <ul class="articles_list">
+  <ul class="articles_list" v-if="props.articles.length">
     <li v-for="article in props.articles" class="article_card_container" :id="article.url">
       <v-card
         v-if="article.title !== '[Removed]'"
@@ -24,6 +24,7 @@ const props = defineProps(['articles']);
       ></v-card>
     </li>
   </ul>
+  <h2 v-else>There are no articles</h2>
 </template>
 
 <style>
@@ -37,6 +38,8 @@ const props = defineProps(['articles']);
 
 .article_card_container {
   width: 35rem;
+  max-width: 90vw;
+  min-width: 22rem;
   list-style: none;
 }
 

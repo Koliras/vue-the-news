@@ -30,6 +30,11 @@ async function handleQueryChange() {
   formState.dateTo = $route.query.to || undefined;
   formState.dateFrom = $route.query.from || undefined;
 
+  if (!$route.query.q) {
+    emit('search-submit', [])
+    return;
+  }
+
   let urlString = initialNewsUrl + `&q=${formState.query}&sortBy=${formState.sortBy}`;
 
   if (formState.searchIn.length) {
@@ -129,7 +134,7 @@ function handleDateToChange(date) {
 }
 
 onMounted(() => {
-  if (formState.query.length >= 3) handleSubmit();
+  if (formState.query.length >= 3) handleQueryChange();
 })
 </script>
 
@@ -146,7 +151,7 @@ onMounted(() => {
     
     <div class="choices">
       <div class="searchInContainer">
-        <h3>Search in: <sup class="sup">by default searches everywhere</sup></h3>
+        <h3>Search in: <sup class="sup">by default everywhere</sup></h3>
         <v-checkbox
           v-for="field in SEARCH_IN_FIELDS"
           :label="field"
@@ -246,6 +251,9 @@ onMounted(() => {
 <style scoped>
 .form {
   margin: 1rem;
+  width: 35rem;
+  max-width: 90vw;
+  min-width: 22rem;
 }
 
 .choices {

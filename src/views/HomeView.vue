@@ -10,24 +10,10 @@ const news = ref([]);
 function handleSubmit(newArticles) {
   news.value = newArticles;
 }
-
-onMounted(async () => {
-  const { data, isFetching, error } = await useFetch('https://newsapi.org/v2/everything?pageSize=20&q=Apple', {
-    async beforeFetch({ options }) {
-      options.headers = {
-        ...options.headers,
-        "X-Api-Key": NEWS_API_KEY,
-      }
-    }
-  }).json()
-
-  news.value = data.value.articles;
-})
 </script>
 
 <template>
   <main>
-    <h1>Home page</h1>
     <SearchForm @search-submit="handleSubmit" />
     <ArticlesList :articles='news' />
   </main>

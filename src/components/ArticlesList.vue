@@ -5,7 +5,11 @@ const props = defineProps(['articles']);
 
 <template>
   <ul class="articles_list" v-if="props.articles.length">
-    <li v-for="article in props.articles" class="article_card_container" :id="article.url">
+    <li
+      v-for="article in props.articles"
+      class="article_card_container"
+      :key="article.url"
+    >
       <v-card
         v-if="article.title !== '[Removed]'"
         :title="article.title"

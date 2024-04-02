@@ -156,6 +156,7 @@ onMounted(() => {
           v-for="field in SEARCH_IN_FIELDS"
           :label="field"
           :value="field"
+          :key="field"
           v-model="formState.searchIn"
           class="searchInField"
           hide-details
@@ -171,6 +172,7 @@ onMounted(() => {
             v-for="sortMethod in SORT_METHODS"
             :label="sortMethod.label"
             :value="sortMethod.value"
+            :key="sortMethod.value"
           ></v-radio>
         </v-radio-group>
       </v-container>
